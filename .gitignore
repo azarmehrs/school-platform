@@ -51,3 +51,8 @@ next-env.d.ts
 /host/private/uploads/
 *.tsbuildinfo
 *.log
+
+# Local release staging and private school rosters
+/tmp/
+/host/private/azarmahr-1405.json
+/public/import-packages/

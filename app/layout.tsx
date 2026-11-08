@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "دفتر کلاسی آنلاین آذرمهر | دفتر هوشمند معلم",
+  title: "دفتر کلاسی من",
   description: "مدیریت کلاس و ارزشیابی پودمانی — طراحی سعید آذرمهر",
   other: {
     "codex-preview": "development",

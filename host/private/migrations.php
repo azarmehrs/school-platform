@@ -32,4 +32,9 @@ function migrate(PDO $db): void {
  $db->exec('CREATE TABLE IF NOT EXISTS pdm_files (id CHAR(32) PRIMARY KEY,user_id BIGINT UNSIGNED NOT NULL,task_id VARCHAR(100) NOT NULL,name VARCHAR(200) NOT NULL,size INT NOT NULL,created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
  $db->exec('UPDATE pdm_schema SET version=4 WHERE id=1');
  }
+ if($version<5){
+ $db->exec("CREATE TABLE IF NOT EXISTS pdm_audit_events (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,actor_id BIGINT UNSIGNED NULL,actor_key VARCHAR(100) NOT NULL,action VARCHAR(80) NOT NULL,target VARCHAR(160) NOT NULL DEFAULT '',outcome VARCHAR(20) NOT NULL DEFAULT 'success',ip_hash CHAR(64) NOT NULL DEFAULT '',details VARCHAR(1000) NOT NULL DEFAULT '',created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,INDEX audit_created(created_at,id),INDEX audit_actor(actor_key,id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+ $db->exec("CREATE TABLE IF NOT EXISTS pdm_school_backups (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,kind VARCHAR(10) NOT NULL,period_key VARCHAR(20) NOT NULL,revision BIGINT NOT NULL,actor_id BIGINT UNSIGNED NULL,payload LONGTEXT NOT NULL,created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,UNIQUE KEY backup_period(kind,period_key),INDEX backup_created(created_at,id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+ $db->exec('UPDATE pdm_schema SET version=5 WHERE id=1');
+ }
 }
