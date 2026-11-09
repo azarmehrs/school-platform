@@ -10,7 +10,7 @@ export type Teacher={id:string;name:string;email:string;phone?:string;nationalCo
 export type Subject={id:string;name:string;kind:'general'|'technical';gradeId:string;majorId:string};
 export type Offering=Omit<Course,'classId'>&{classId:string;subjectId:string;teacherId:string};
 export type TimetableSlot={id:string;classId:string;offeringId:string;day:string;startPeriod:number;endPeriod:number;startTime:string;endTime:string;importKey?:string};
-export type Incident={id:string;studentId:string;classId:string;yearId:string;date:string;title:string;detail:string;followup:string;status:'open'|'in_progress'|'resolved';author:string};
+export type Incident={id:string;studentId:string;classId:string;yearId:string;date:string;title:string;detail:string;followup:string;status:'open'|'in_progress'|'resolved';author:string;attendanceSessionId?:string};
 export type StudentField={id:string;name:string;type:'text'|'number'|'date';required:boolean};
 export type School={customFields?:StudentField[];timetable?:TimetableSlot[];years:Year[];majors:Major[];grades:Grade[];classes:SchoolClass[];students:SchoolStudent[];enrollments:Enrollment[];teachers:Teacher[];subjects:Subject[];offerings:Offering[];sessions:Session[];finals:Record<string,FinalGrade>;incidents:Incident[];attendanceFollowup:Record<string,string>};
 export const matches=(c:SchoolClass,s:Subject)=>c.gradeId===s.gradeId&&(s.majorId==='all'||s.majorId===c.majorId);
