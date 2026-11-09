@@ -45,8 +45,9 @@ try{
  if($action==='sms_config_get'){school_require($actor==='admin');json_response(['config'=>sms_safe_config(sms_config())]);}
  if($action==='sms_config_save'){school_require($actor==='admin');$c=sms_save_config($body);audit_event($u,'sms.config');json_response(['ok'=>true,'config'=>sms_safe_config($c),'public'=>sms_public_config()]);}
  if($action==='sms_test'){
-  school_require($actor==='admin');$balance=faraz_request('GET','/ws/v1/account/balance');$patterns=null;$lines=null;try{$patterns=faraz_request('GET','/ws/v1/patterns',null,['page'=>1,'limit'=>100]);}catch(Throwable $e){}try{$lines=faraz_request('GET','/ws/v1/lines/accessible');}catch(Throwable $e){}
-  $configured=sms_config();$line=$configured['line_number']!==''?$configured['line_number']:faraz_first_line($lines);audit_event($u,'sms.test');json_response(['ok'=>true,'balance'=>$balance,'patterns'=>$patterns,'lines'=>$lines,'lineNumber'=>$line,'public'=>sms_public_config()]);
+  school_require($actor==='admin');$saved=sms_config();$provided=trim((string)($body['apiKey']??''));$testing=$saved;if($provided!=='')$testing['api_key']=$provided;
+  $balance=faraz_request('GET','/ws/v1/account/balance',null,[],$testing,false);$patterns=null;$lines=null;$patternsError='';$linesError='';try{$patterns=faraz_request('GET','/ws/v1/patterns',null,['page'=>1,'limit'=>100],$testing,false);}catch(Throwable $e){$patternsError=$e->getMessage();}try{$lines=faraz_request('GET','/ws/v1/lines/accessible',null,[],$testing,false);}catch(Throwable $e){$linesError=$e->getMessage();}
+  $line=trim((string)($body['lineNumber']??''));if($line==='')$line=$saved['line_number']!==''?$saved['line_number']:faraz_first_line($lines);audit_event($u,'sms.test');json_response(['ok'=>true,'balance'=>$balance,'patterns'=>$patterns,'patternsError'=>$patternsError,'lines'=>$lines,'linesError'=>$linesError,'lineNumber'=>$line,'public'=>sms_public_config()]);
  }
  if(in_array($action,['sms_overview','sms_send','sms_cost','sms_reports','sms_report_items','sms_inbox'],true)){
   $loaded=central_load();school_require(school_can($loaded['state']['life'],$actor,'sms'),'دسترسی مرکز پیامک ندارید.');
