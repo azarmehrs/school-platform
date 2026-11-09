@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-const APP_VERSION='3.9.1';
+const APP_VERSION='3.10.0';
 const SCHEMA_VERSION=6;
 function json_response(array $data,int $status=200): never {http_response_code($status);header('Content-Type: application/json; charset=utf-8');echo json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);exit;}
 function is_https(): bool {return (!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off');}
