@@ -1,4 +1,4 @@
-const CACHE='my-classbook-offline-11';
+const CACHE='my-classbook-offline-12';
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.add(new URL('offline.html',self.registration.scope).href))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>(k.startsWith('poodman-offline-')||k.startsWith('my-classbook-offline-'))&&k!==CACHE).map(k=>caches.delete(k))))));
 // No teacher data, API responses or authenticated pages are cached.
