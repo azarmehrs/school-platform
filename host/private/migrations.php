@@ -37,4 +37,9 @@ function migrate(PDO $db): void {
  $db->exec("CREATE TABLE IF NOT EXISTS pdm_school_backups (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,kind VARCHAR(10) NOT NULL,period_key VARCHAR(20) NOT NULL,revision BIGINT NOT NULL,actor_id BIGINT UNSIGNED NULL,payload LONGTEXT NOT NULL,created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,UNIQUE KEY backup_period(kind,period_key),INDEX backup_created(created_at,id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
  $db->exec('UPDATE pdm_schema SET version=5 WHERE id=1');
  }
+ if($version<6){
+ $db->exec("CREATE TABLE IF NOT EXISTS pdm_sms_jobs (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,actor_id BIGINT UNSIGNED NULL,kind VARCHAR(40) NOT NULL DEFAULT 'manual',event_key VARCHAR(190) NULL,message TEXT NOT NULL,recipients_count INT NOT NULL DEFAULT 0,status VARCHAR(30) NOT NULL,provider_id VARCHAR(100) NOT NULL DEFAULT '',error_text VARCHAR(1000) NOT NULL DEFAULT '',meta MEDIUMTEXT NOT NULL,created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,UNIQUE KEY sms_job_event(event_key),INDEX sms_job_created(created_at,id),INDEX sms_job_provider(provider_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+ $db->exec("CREATE TABLE IF NOT EXISTS pdm_sms_recipients (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,job_id BIGINT UNSIGNED NOT NULL,phone VARCHAR(15) NOT NULL,status VARCHAR(30) NOT NULL,error_text VARCHAR(500) NOT NULL DEFAULT '',provider_item_id VARCHAR(100) NOT NULL DEFAULT '',INDEX sms_recipient_job(job_id,id),CONSTRAINT sms_recipient_job_fk FOREIGN KEY(job_id) REFERENCES pdm_sms_jobs(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+ $db->exec('UPDATE pdm_schema SET version=6 WHERE id=1');
+ }
 }
