@@ -49,6 +49,10 @@ try{
   $balance=faraz_request('GET','/ws/v1/account/balance',null,[],$testing,false);$patterns=null;$lines=null;$patternsError='';$linesError='';try{$patterns=faraz_request('GET','/ws/v1/patterns',null,['page'=>1,'limit'=>100],$testing,false);}catch(Throwable $e){$patternsError=$e->getMessage();}try{$lines=faraz_request('GET','/ws/v1/lines/accessible',null,[],$testing,false);}catch(Throwable $e){$linesError=$e->getMessage();}
   $line=trim((string)($body['lineNumber']??''));if($line==='')$line=$saved['line_number']!==''?$saved['line_number']:faraz_first_line($lines);audit_event($u,'sms.test');json_response(['ok'=>true,'balance'=>$balance,'patterns'=>$patterns,'patternsError'=>$patternsError,'lines'=>$lines,'linesError'=>$linesError,'lineNumber'=>$line,'public'=>sms_public_config()]);
  }
+ if($action==='sms_send_test'){
+  school_require($actor==='admin');throttle('sms-test-send:'.$u['id'],5,3600);$phone=sms_phone($body['phone']??'');$text=mb_substr(trim((string)($body['text']??'')),0,300);school_require($phone!=='','شماره همراه آزمایش معتبر نیست.');school_require($text!=='','متن پیامک آزمایشی لازم است.');
+  try{$result=faraz_send_simple([$phone],$text,null,!empty($body['service']));$providerId=faraz_request_id($result);$job=sms_job_log((int)$u['id'],'test',$text,[$phone],'queued',$providerId,'',['test'=>true]);audit_event($u,'sms.test_send','job:'.$job,'success','provider '.$providerId);json_response(['ok'=>true,'jobId'=>$job,'requestId'=>$providerId,'message'=>faraz_success_message($result),'accepted'=>true]);}catch(Throwable $e){$job=sms_job_log((int)$u['id'],'test',$text,[$phone],'failed','',$e->getMessage(),['test'=>true]);audit_event($u,'sms.test_send','job:'.$job,'failed',$e->getMessage());throw $e;}
+ }
  if(in_array($action,['sms_overview','sms_send','sms_cost','sms_reports','sms_report_items','sms_inbox'],true)){
   $loaded=central_load();school_require(school_can($loaded['state']['life'],$actor,'sms'),'دسترسی مرکز پیامک ندارید.');
   if($action==='sms_overview'){
@@ -63,8 +67,8 @@ try{
   if($action==='sms_reports'){
    $page=max(1,(int)($body['page']??1));$local=db()->prepare('SELECT id,kind,message,recipients_count,status,provider_id,error_text,created_at FROM pdm_sms_jobs ORDER BY id DESC LIMIT 100');$local->execute();$provider=null;try{$provider=faraz_request('GET','/ws/v1/send_request',null,['page'=>$page,'limit'=>50]);}catch(Throwable $e){$provider=['error'=>$e->getMessage()];}json_response(['local'=>$local->fetchAll(),'provider'=>$provider]);
   }
-  if($action==='sms_report_items'){$id=preg_replace('/\D/','',(string)($body['requestId']??''));school_require($id!=='','شناسه گزارش لازم است.');json_response(['report'=>faraz_request('GET','/ws/v1/send_request/'.$id),'items'=>faraz_request('GET','/ws/v1/send_request/'.$id.'/items',null,['page'=>max(1,(int)($body['page']??1)),'limit'=>100])]);}
-  if($action==='sms_inbox')json_response(['inbox'=>faraz_request('GET','/ws/v1/inbox',null,['page'=>max(1,(int)($body['page']??1)),'limit'=>100])]);
+  if($action==='sms_report_items'){$id=preg_replace('/\D/','',(string)($body['requestId']??''));school_require($id!=='','شناسه گزارش لازم است.');$report=null;$items=null;$providerError='';try{$report=faraz_request('GET','/ws/v1/send_request/'.$id);$items=faraz_request('GET','/ws/v1/send_request/'.$id.'/items',null,['page'=>max(1,(int)($body['page']??1)),'limit'=>100]);}catch(Throwable $e){$providerError=$e->getMessage();}json_response(['report'=>$report,'items'=>$items,'providerError'=>$providerError]);}
+  if($action==='sms_inbox'){$provider=null;$providerError='';try{$provider=faraz_request('GET','/ws/v1/inbox',null,['page'=>max(1,(int)($body['page']??1)),'limit'=>100]);}catch(Throwable $e){$providerError=$e->getMessage();}json_response(['inbox'=>$provider,'providerError'=>$providerError]);}
  }
  if($action==='logout'){$_SESSION=[];session_regenerate_id(true);$_SESSION['csrf']=bin2hex(random_bytes(32));json_response(['ok'=>true,'csrf'=>$_SESSION['csrf']]);}
  if($action==='save'){
